@@ -24,6 +24,7 @@ archives:
       - README.md
       - config.yml
       - front/dist
+      - resources
 
 checksum:
   name_template: 'checksums.txt'
