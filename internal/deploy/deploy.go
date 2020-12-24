@@ -53,9 +53,11 @@ func UploadSSHKey(vulnbox common.Vulnbox, key string, keyfile string) error {
 	if err != nil {
 		return err
 	}
-	if err := client.Close(); err != nil {
-		logrus.Errorf("Error closing client: %v", err)
-	}
+	defer func() {
+		if err := sftpClient.Close(); err != nil {
+			logrus.Errorf("Error closing client: %v", err)
+		}
+	}()
 
 	authkeys, err := sftpClient.OpenFile(".ssh/authorized_keys", os.O_APPEND|os.O_CREATE|os.O_WRONLY)
 	if err != nil {
