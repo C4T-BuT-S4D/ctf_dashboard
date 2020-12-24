@@ -2,8 +2,13 @@ auth:
   username: admin
   password: flexx
 
+game:
+  board: "http://127.0.0.1:8000"
+  end: "2020-12-24 14:00:00+03:00"
+
 vulnboxes:
-  - host: 127.0.0.1
+  - user: cbs
+    host: 127.0.0.1
     services: [ base_http ]
     goxy_port: 8000
 

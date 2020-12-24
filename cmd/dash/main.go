@@ -109,6 +109,7 @@ func parseDashboardConfig() common.Config {
 	if err := viper.Unmarshal(&cfg); err != nil {
 		logrus.Fatal("Error parsing proxy config from file: ", err)
 	}
+	logrus.Debugf("Parsed dashboard config: %+v", cfg)
 	return cfg
 }
 

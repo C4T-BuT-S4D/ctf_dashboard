@@ -26,13 +26,20 @@ type Service struct {
 }
 
 type Vulnbox struct {
+	User     string   `json:"user" mapstructure:"user"`
 	Host     string   `json:"host" mapstructure:"host"`
 	Services []string `json:"services" mapstructure:"services"`
 	GoxyPort int      `json:"goxy_port" mapstructure:"goxy_port"`
 }
 
+type Game struct {
+	Board string `json:"board" mapstructure:"board"`
+	End   string `json:"end" mapstructure:"end"`
+}
+
 type Config struct {
 	Auth        AuthData  `json:"auth" mapstructure:"auth"`
+	Game        Game      `json:"game" mapstructure:"game"`
 	Mongol      Mongol    `json:"mongol" mapstructure:"mongol"`
 	Services    []Service `json:"services" mapstructure:"services"`
 	Vulnboxes   []Vulnbox `json:"vulnboxes" mapstructure:"vulnboxes"`
