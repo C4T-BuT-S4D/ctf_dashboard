@@ -39,10 +39,21 @@
         <div slot="header" class="clearfix">
           <span class="header-text">Vulnboxes</span>
         </div>
-        <p v-for="(vulnbox, i) of vulnboxes" :key="i">
+        <div v-for="(vulnbox, i) of vulnboxes" :key="i">
           Addr: {{ vulnbox.host }}
           <a :href="getGoxyLink(vulnbox)">Go to goxy</a>
-        </p>
+          <!-- <br /> -->
+          <ul>
+            <li v-for="(service_name, j) of vulnbox.services" :key="j">
+              {{ service_name }}:
+              <a :href="getServiceLink(vulnbox, service_name)"
+                 v-if="service_map[service_name].proto === 'http'">{{ getServiceLink(vulnbox, service_name) }}</a>
+              <span v-else class="copiable" @click="copyText(getServiceLink(vulnbox, service_name))">{{
+                  getServiceLink(vulnbox, service_name)
+                }}</span>
+            </li>
+          </ul>
+        </div>
       </el-card>
     </el-col>
   </el-row>
@@ -57,7 +68,9 @@ export default {
       password: "",
       mongolLink: "",
       farmLink: "",
-      vulnboxes: []
+      vulnboxes: [],
+      services: [],
+      service_map: {}
     };
   },
 
@@ -75,6 +88,10 @@ export default {
         this.mongolLink = `http://${this.username}:${this.password}@${this.config.mongol.addr}`;
         this.farmLink = `http://${this.username}:${this.password}@${this.config.farm.addr}`;
         this.vulnboxes = this.config.vulnboxes;
+        this.services = this.config.services;
+        for (let service of this.services) {
+          this.service_map[service.name] = service;
+        }
       } catch {
         this.config = {};
       }
@@ -98,8 +115,31 @@ export default {
       await this.downloadFile("/start_sploit.py", "start_sploit.py");
     },
     getGoxyLink: function(vulnbox) {
-      console.log(vulnbox);
       return `http://${this.username}:${this.password}@${vulnbox.host}:${vulnbox.goxy_port}`;
+    },
+    getServiceLink: function(vulnbox, service) {
+      if (this.service_map[service].proto === "http") {
+        return `http://${vulnbox.host}:${this.service_map[service].port}`;
+      } else {
+        return `${vulnbox.host} ${this.service_map[service].port}`;
+      }
+    },
+    copyText: function(text) {
+      var textArea = document.createElement("textarea");
+      textArea.value = text;
+
+      // Avoid scrolling to bottom
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.position = "fixed";
+
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      document.body.removeChild(textArea);
+
+      this.$notify({title: "Text copied to clipboard", message: text, type: "success"});
     }
   }
 };
@@ -123,7 +163,13 @@ export default {
   display: table;
   content: "";
 }
+
 .clearfix:after {
   clear: both;
+}
+
+.copiable {
+  cursor: pointer;
+  color: blue;
 }
 </style>
