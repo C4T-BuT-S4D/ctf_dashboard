@@ -19,10 +19,25 @@
             </template>
           </countdown>
         </div>
-        <div class="text item"><a :href="boardLink">Scoreboard</a></div>
-        <div class="text item">Username: {{ username }}</div>
-        <div class="text item">Password: {{ password }}</div>
-        <el-button @click="downloadKeyFile">Download key file</el-button>
+        <div class="row2">
+          <div class="column2">
+            <div class="text item"><a :href="boardLink">Scoreboard</a></div>
+            <div class="text item">Username: {{ username }}</div>
+            <div class="text item">Password: {{ password }}</div>
+            <el-button @click="downloadKeyFile">Download key file</el-button>
+          </div>
+          <div class="column2">
+            <div>
+              <el-input
+                :rows="4"
+                type="textarea"
+                placeholder="Enter ssh public key"
+                v-model="keyContent"
+              ></el-input>
+              <el-button @click="uploadKeyFile">Upload key</el-button>
+            </div>
+          </div>
+        </div>
       </el-card>
     </el-col>
     <el-col :span="6">
@@ -64,20 +79,19 @@
             &rarr;
             <a :href="getGoxyLink(vulnbox)">Goxy</a>
           </div>
-          <!-- <br /> -->
           <ul>
-            <li v-for="(service_name, j) of vulnbox.services" :key="j">
-              {{ service_name }}:
+            <li v-for="(serviceName, j) of vulnbox.services" :key="j">
+              {{ serviceName }}:
               <a
-                :href="getServiceLink(vulnbox, service_name)"
-                v-if="service_map[service_name].proto === 'http'"
-                >{{ getServiceLink(vulnbox, service_name) }}</a
+                :href="getServiceLink(vulnbox, serviceName)"
+                v-if="serviceMap[serviceName].proto === 'http'"
+                >{{ getServiceLink(vulnbox, serviceName) }}</a
               >
               <span
                 v-else
                 class="copiable"
-                @click="copyText(getServiceLink(vulnbox, service_name))"
-                >{{ getServiceLink(vulnbox, service_name) }}</span
+                @click="copyText(getServiceLink(vulnbox, serviceName))"
+                >{{ getServiceLink(vulnbox, serviceName) }}</span
               >
             </li>
           </ul>
@@ -98,7 +112,8 @@ export default {
       services: [],
       game: {},
       endTime: {},
-      service_map: {}
+      serviceMap: {},
+      keyContent: ""
     };
   },
 
@@ -121,16 +136,28 @@ export default {
 
         this.services = this.config.services;
         for (let service of this.services) {
-          this.service_map[service.name] = service;
+          this.serviceMap[service.name] = service;
         }
-      } catch {
+        this.$notify({
+          title: "Config load",
+          message: "Success",
+          type: "success",
+          duration: 1500
+        });
+      } catch (e) {
         this.config = {};
+        this.$notify({
+          title: "Config load",
+          message: `Error: ${e}`,
+          type: "error",
+          duration: 10000
+        });
       }
     },
     downloadFile: async function(path, name) {
       this.$http.get(path).then(response => {
-        var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-        var fileLink = document.createElement("a");
+        let fileURL = window.URL.createObjectURL(new Blob([response.data]));
+        let fileLink = document.createElement("a");
 
         fileLink.href = fileURL;
         fileLink.setAttribute("download", name);
@@ -145,14 +172,30 @@ export default {
     downloadStartSploit: async function() {
       await this.downloadFile("/start_sploit.py", "start_sploit.py");
     },
+    uploadKeyFile: async function() {
+      try {
+        await this.$http.post("/add_ssh_key/", { key: this.keyContent });
+        this.$notify({
+          title: "Key upload",
+          message: "Success",
+          type: "success"
+        });
+      } catch (e) {
+        this.$notify({
+          title: "Key upload",
+          message: `Error: ${e}`,
+          type: "error"
+        });
+      }
+    },
     getGoxyLink: function(vulnbox) {
       return `http://${this.username}:${this.password}@${vulnbox.host}:${vulnbox.goxy_port}`;
     },
     getServiceLink: function(vulnbox, service) {
-      if (this.service_map[service].proto === "http") {
-        return `http://${vulnbox.host}:${this.service_map[service].port}`;
+      if (this.serviceMap[service].proto === "http") {
+        return `http://${vulnbox.host}:${this.serviceMap[service].port}`;
       } else {
-        return `${vulnbox.host} ${this.service_map[service].port}`;
+        return `${vulnbox.host} ${this.serviceMap[service].port}`;
       }
     },
     copyText: function(text) {
@@ -168,13 +211,23 @@ export default {
       textArea.focus();
       textArea.select();
 
-      document.body.removeChild(textArea);
+      try {
+        document.execCommand("copy");
+        this.$notify({
+          title: "Text copied to clipboard",
+          message: text,
+          type: "success",
+          duration: 1500
+        });
+      } catch (err) {
+        this.$notify({
+          title: "Text copy failed",
+          message: `Error: ${err}`,
+          type: "error"
+        });
+      }
 
-      this.$notify({
-        title: "Text copied to clipboard",
-        message: text,
-        type: "success"
-      });
+      document.body.removeChild(textArea);
     }
   },
   computed: {
@@ -226,5 +279,13 @@ export default {
 .copiable {
   cursor: pointer;
   color: blue;
+}
+
+.row2 {
+  display: flex;
+}
+
+.column2 {
+  flex: 50%;
 }
 </style>

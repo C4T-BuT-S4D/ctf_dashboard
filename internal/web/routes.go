@@ -1,6 +1,7 @@
 package web
 
 import (
+	"ctf_dashboard/internal/deploy"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"net/http"
@@ -36,5 +37,22 @@ func (s Server) serveStartSploit() gin.HandlerFunc {
 		content = strings.ReplaceAll(content, "$$SERVER_URL$$", s.cfg.Farm.GetUrl())
 		content = strings.ReplaceAll(content, "$$PASSWORD$$", s.cfg.Auth.Password)
 		c.Data(http.StatusOK, "application/octet-stream", []byte(content))
+	}
+}
+
+func (s Server) addSSHKey() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req UploadIdRSARequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		for _, vulnbox := range s.cfg.Vulnboxes {
+			if err := deploy.UploadSSHKey(vulnbox, req.Key, s.cfg.KeyFile); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	}
 }
