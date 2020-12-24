@@ -36,6 +36,7 @@ func (s *Server) registerRoutes() {
 		api.GET("/config/", s.configHandler())
 		api.GET("/start_sploit.py", s.serveStartSploit())
 		api.GET("/key_file", s.serveKeyFile())
+		api.POST("/add_ssh_key/", s.addSSHKey())
 	}
 
 	logrus.Infof("Serving static dir: %s", s.StaticDir)
