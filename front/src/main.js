@@ -3,6 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import "@/plugins/element.js";
+import "@/plugins/countdown.js";
 import axios from "axios";
 import { backUrl } from "@/config/index.js";
 

@@ -3,8 +3,23 @@
     <el-col :span="6">
       <el-card>
         <div slot="header" class="clearfix">
-          <span class="header-text">Credentials</span>
+          <span class="header-text">Game info</span>
+          <countdown
+            v-if="config"
+            style="float: right; padding: 3px 0"
+            :end-time="endTime"
+          >
+            <template v-slot:process="scope">
+              <span>{{
+                `${scope.timeObj.h}:${scope.timeObj.m}:${scope.timeObj.s}`
+              }}</span>
+            </template>
+            <template v-slot:finish>
+              <span>Game finished!</span>
+            </template>
+          </countdown>
         </div>
+        <div class="text item"><a :href="boardLink">Scoreboard</a></div>
         <div class="text item">Username: {{ username }}</div>
         <div class="text item">Password: {{ password }}</div>
         <el-button @click="downloadKeyFile">Download key file</el-button>
@@ -40,17 +55,30 @@
           <span class="header-text">Vulnboxes</span>
         </div>
         <div v-for="(vulnbox, i) of vulnboxes" :key="i">
-          Addr: {{ vulnbox.host }}
-          <a :href="getGoxyLink(vulnbox)">Go to goxy</a>
+          <div>
+            <span
+              class="copiable"
+              @click="copyText(`${vulnbox.user}@${vulnbox.host}`)"
+              >{{ vulnbox.user }}@{{ vulnbox.host }}</span
+            >
+            &rarr;
+            <a :href="getGoxyLink(vulnbox)">Goxy</a>
+          </div>
           <!-- <br /> -->
           <ul>
             <li v-for="(service_name, j) of vulnbox.services" :key="j">
               {{ service_name }}:
-              <a :href="getServiceLink(vulnbox, service_name)"
-                 v-if="service_map[service_name].proto === 'http'">{{ getServiceLink(vulnbox, service_name) }}</a>
-              <span v-else class="copiable" @click="copyText(getServiceLink(vulnbox, service_name))">{{
-                  getServiceLink(vulnbox, service_name)
-                }}</span>
+              <a
+                :href="getServiceLink(vulnbox, service_name)"
+                v-if="service_map[service_name].proto === 'http'"
+                >{{ getServiceLink(vulnbox, service_name) }}</a
+              >
+              <span
+                v-else
+                class="copiable"
+                @click="copyText(getServiceLink(vulnbox, service_name))"
+                >{{ getServiceLink(vulnbox, service_name) }}</span
+              >
             </li>
           </ul>
         </div>
@@ -66,10 +94,10 @@ export default {
       config: null,
       username: "",
       password: "",
-      mongolLink: "",
-      farmLink: "",
       vulnboxes: [],
       services: [],
+      game: {},
+      endTime: {},
       service_map: {}
     };
   },
@@ -85,9 +113,12 @@ export default {
         this.config = data;
         this.username = this.config.auth.username;
         this.password = this.config.auth.password;
-        this.mongolLink = `http://${this.username}:${this.password}@${this.config.mongol.addr}`;
-        this.farmLink = `http://${this.username}:${this.password}@${this.config.farm.addr}`;
         this.vulnboxes = this.config.vulnboxes;
+
+        this.game = this.config.game;
+        this.endTime = new Date(this.game.end);
+        console.log(this.endTime);
+
         this.services = this.config.services;
         for (let service of this.services) {
           this.service_map[service.name] = service;
@@ -139,7 +170,31 @@ export default {
 
       document.body.removeChild(textArea);
 
-      this.$notify({title: "Text copied to clipboard", message: text, type: "success"});
+      this.$notify({
+        title: "Text copied to clipboard",
+        message: text,
+        type: "success"
+      });
+    }
+  },
+  computed: {
+    mongolLink: function() {
+      if (!this.config) {
+        return "";
+      }
+      return `http://${this.username}:${this.password}@${this.config.mongol.addr}`;
+    },
+    farmLink: function() {
+      if (!this.config) {
+        return "";
+      }
+      return `http://${this.username}:${this.password}@${this.config.farm.addr}`;
+    },
+    boardLink: function() {
+      if (!this.config) {
+        return "";
+      }
+      return this.game.board;
     }
   }
 };
