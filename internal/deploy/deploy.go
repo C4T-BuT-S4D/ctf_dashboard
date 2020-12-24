@@ -3,6 +3,7 @@ package deploy
 import (
 	"ctf_dashboard/internal/common"
 	"github.com/pkg/sftp"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"os"
@@ -14,7 +15,7 @@ func ValidPublicKey(key string) error {
 	return err
 }
 
-func UploadIdRsa(vulnbox common.Vulnbox, key string, keyfile string) error {
+func UploadSSHKey(vulnbox common.Vulnbox, key string, keyfile string) error {
 	err := ValidPublicKey(key)
 	if err != nil {
 		return err
@@ -42,15 +43,21 @@ func UploadIdRsa(vulnbox common.Vulnbox, key string, keyfile string) error {
 	if err != nil {
 		return nil
 	}
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			logrus.Errorf("Error closing client: %v", err)
+		}
+	}()
 
-	sftp, err := sftp.NewClient(client)
+	sftpClient, err := sftp.NewClient(client)
 	if err != nil {
 		return err
 	}
-	defer sftp.Close()
+	if err := client.Close(); err != nil {
+		logrus.Errorf("Error closing client: %v", err)
+	}
 
-	authkeys, err := sftp.OpenFile(".ssh/authorized_keys", os.O_APPEND|os.O_CREATE|os.O_WRONLY)
+	authkeys, err := sftpClient.OpenFile(".ssh/authorized_keys", os.O_APPEND|os.O_CREATE|os.O_WRONLY)
 	if err != nil {
 		return err
 	}

@@ -40,7 +40,6 @@ func (s Server) serveStartSploit() gin.HandlerFunc {
 	}
 }
 
-
 func (s Server) addSSHKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req UploadIdRSARequest
@@ -49,7 +48,7 @@ func (s Server) addSSHKey() gin.HandlerFunc {
 			return
 		}
 		for _, vulnbox := range s.cfg.Vulnboxes {
-			if err := deploy.UploadIdRsa(vulnbox, req.Key, s.cfg.KeyFile); err != nil {
+			if err := deploy.UploadSSHKey(vulnbox, req.Key, s.cfg.KeyFile); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
@@ -57,4 +56,3 @@ func (s Server) addSSHKey() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	}
 }
-
