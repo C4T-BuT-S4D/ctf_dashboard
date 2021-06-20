@@ -1,6 +1,6 @@
 <template>
   <el-row :gutter="26">
-    <el-col :span="6">
+    <el-col :span="8">
       <el-card>
         <div slot="header" class="clearfix">
           <span class="header-text">Game info</span>
@@ -19,39 +19,27 @@
             </template>
           </countdown>
         </div>
-        <div class="row2">
-          <div class="column2">
+        <el-row :gutter="10">
+          <el-col :span="12">
             <div class="text item"><a :href="boardLink">Scoreboard</a></div>
-            <div class="text item">Username: {{ username }}</div>
-            <div class="text item">Password: {{ password }}</div>
-            <el-button @click="downloadKeyFile">Download key file</el-button>
-          </div>
-          <div class="column2">
-            <div>
-              <el-input
-                :rows="4"
-                type="textarea"
-                placeholder="Enter ssh public key"
-                v-model="keyContent"
-              ></el-input>
-              <el-button @click="uploadKeyFile">Upload key</el-button>
+            <div class="text item"><a :href="mongolLink">MonGol</a></div>
+            <div class="text item">
+              Username:
+              <span class="copiable" @click="copyText(`${username}`)">{{
+                username
+              }}</span>
             </div>
-          </div>
-        </div>
+            <div class="text item">
+              Password:
+              <span class="copiable" @click="copyText(`${password}`)">{{
+                password
+              }}</span>
+            </div>
+          </el-col>
+        </el-row>
       </el-card>
     </el-col>
-    <el-col :span="6">
-      <el-card>
-        <div slot="header" class="clearfix">
-          <span class="header-text">Mongol</span>
-          <a :href="mongolLink" style="float: right; padding: 3px 0" type="text"
-            >Open</a
-          >
-        </div>
-        <div class="text item">Credentials are the same</div>
-      </el-card>
-    </el-col>
-    <el-col :span="6">
+    <el-col :span="8">
       <el-card>
         <div slot="header" class="clearfix">
           <span class="header-text">Farm</span>
@@ -59,12 +47,17 @@
             >Open</a
           >
         </div>
-        <el-button @click="downloadStartSploit"
-          >Download start sploit</el-button
-        >
+        <el-row justify="space-around" type="flex">
+          <el-button :span="6" @click="downloadNeoRunner"
+            >🖨️ Neo runner
+          </el-button>
+          <el-button :span="6" @click="downloadStartSploit"
+            >🖨️ Start sploit
+          </el-button>
+        </el-row>
       </el-card>
     </el-col>
-    <el-col :span="6">
+    <el-col :span="8">
       <el-card>
         <div slot="header" class="clearfix">
           <span class="header-text">Vulnboxes</span>
@@ -80,21 +73,38 @@
             <a :href="getGoxyLink(vulnbox)">Goxy</a>
           </div>
           <ul>
-            <li v-for="(serviceName, j) of vulnbox.services" :key="j">
-              {{ serviceName }}:
+            <li v-for="(service, j) of vulnbox.services" :key="j">
+              {{ service.name }}:
               <a
-                :href="getServiceLink(vulnbox, serviceName)"
-                v-if="serviceMap[serviceName].proto === 'http'"
-                >{{ getServiceLink(vulnbox, serviceName) }}</a
+                v-if="service.proto === 'http'"
+                :href="getServiceLink(vulnbox, service)"
+                >{{ getServiceLink(vulnbox, service) }}</a
               >
               <span
                 v-else
                 class="copiable"
-                @click="copyText(getServiceLink(vulnbox, serviceName))"
-                >{{ getServiceLink(vulnbox, serviceName) }}</span
+                @click="copyText(getServiceLink(vulnbox, service))"
+                >{{ getServiceLink(vulnbox, service) }}</span
               >
             </li>
           </ul>
+        </div>
+        <div>
+          <el-row>
+            <el-input
+              v-model="keyContent"
+              :rows="4"
+              placeholder="Enter ssh public key"
+              style="margin-bottom: 10px"
+              type="textarea"
+            ></el-input>
+          </el-row>
+          <el-row justify="center" type="flex">
+            <el-button :span="8" @click="uploadKeyFile">Upload key</el-button>
+            <el-button :span="8" @click="downloadKeyFile"
+              >Download key file
+            </el-button>
+          </el-row>
         </div>
       </el-card>
     </el-col>
@@ -102,6 +112,8 @@
 </template>
 
 <script>
+import moment from "moment";
+
 export default {
   data: function() {
     return {
@@ -109,10 +121,8 @@ export default {
       username: "",
       password: "",
       vulnboxes: [],
-      services: [],
       game: {},
       endTime: {},
-      serviceMap: {},
       keyContent: ""
     };
   },
@@ -131,18 +141,14 @@ export default {
         this.vulnboxes = this.config.vulnboxes;
 
         this.game = this.config.game;
-        this.endTime = new Date(this.game.end);
+        this.endTime = moment(this.game.end);
         console.log(this.endTime);
 
-        this.services = this.config.services;
-        for (let service of this.services) {
-          this.serviceMap[service.name] = service;
-        }
         this.$notify({
           title: "Config load",
           message: "Success",
           type: "success",
-          duration: 1500
+          duration: 1000
         });
       } catch (e) {
         this.config = {};
@@ -155,7 +161,8 @@ export default {
       }
     },
     downloadFile: async function(path, name) {
-      this.$http.get(path).then(response => {
+      try {
+        const response = await this.$http.get(path);
         let fileURL = window.URL.createObjectURL(new Blob([response.data]));
         let fileLink = document.createElement("a");
 
@@ -164,13 +171,23 @@ export default {
         document.body.appendChild(fileLink);
 
         fileLink.click();
-      });
+      } catch (e) {
+        this.$notify({
+          title: "Download file",
+          message: `Error downloading ${name}: ${e}`,
+          type: "error",
+          duration: 3000
+        });
+      }
     },
     downloadKeyFile: async function() {
       await this.downloadFile("/key_file", "ssh_key");
     },
     downloadStartSploit: async function() {
       await this.downloadFile("/start_sploit.py", "start_sploit.py");
+    },
+    downloadNeoRunner: async function() {
+      await this.downloadFile("/run_neo.sh", "run_neo.sh");
     },
     uploadKeyFile: async function() {
       try {
@@ -192,10 +209,10 @@ export default {
       return `http://${this.username}:${this.password}@${vulnbox.host}:${vulnbox.goxy_port}`;
     },
     getServiceLink: function(vulnbox, service) {
-      if (this.serviceMap[service].proto === "http") {
-        return `http://${vulnbox.host}:${this.serviceMap[service].port}`;
+      if (service.proto === "http") {
+        return `http://${vulnbox.host}:${service.port}`;
       } else {
-        return `${vulnbox.host} ${this.serviceMap[service].port}`;
+        return `${vulnbox.host} ${service.port}`;
       }
     },
     copyText: function(text) {
@@ -279,13 +296,5 @@ export default {
 .copiable {
   cursor: pointer;
   color: blue;
-}
-
-.row2 {
-  display: flex;
-}
-
-.column2 {
-  flex: 50%;
 }
 </style>
