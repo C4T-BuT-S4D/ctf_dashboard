@@ -4,7 +4,6 @@ import (
 	"context"
 	"ctf_dashboard/internal/common"
 	"ctf_dashboard/internal/web"
-	"flag"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -42,7 +41,7 @@ func main() {
 }
 
 func setupConfig() {
-	pflag.String("log_level", "INFO", "Log level {INFO|DEBUG|WARNING|ERROR}")
+	pflag.BoolP("verbose", "v", false, "Enable verbose logging")
 	pflag.StringP("config", "c", "config.yml", "Path to config file")
 	pflag.Parse()
 
@@ -64,27 +63,15 @@ func initLogger() {
 }
 
 func setLogLevel() {
-	ll := viper.GetString("log_level")
-	switch ll {
-	case "DEBUG":
+	if viper.GetBool("verbose") {
 		logrus.SetLevel(logrus.DebugLevel)
-	case "INFO":
+	} else {
 		logrus.SetLevel(logrus.InfoLevel)
-	case "WARNING":
-		logrus.SetLevel(logrus.WarnLevel)
-	case "ERROR":
-		viper.Set("debug", true)
-		logrus.SetLevel(logrus.ErrorLevel)
-	default:
-		logrus.Errorf("Invalid log level provided: %s", ll)
-		flag.PrintDefaults()
-		os.Exit(1)
 	}
 }
 
 func setWebServerMode() {
-	level := logrus.StandardLogger().GetLevel()
-	if level == logrus.DebugLevel {
+	if viper.GetBool("verbose") {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
@@ -94,6 +81,10 @@ func setWebServerMode() {
 func setConfigDefaults() {
 	viper.SetDefault("web.static_dir", "front/dist")
 	viper.SetDefault("web.listen", "0.0.0.0:8000")
+	viper.SetDefault("start_sploit", "resources/start_sploit.py")
+	viper.SetDefault("neo.runner_path", "resources/run_neo.sh")
+	viper.SetDefault("neo.version", "latest")
+	viper.SetDefault("key_file", "resources/ssh_key")
 }
 
 func parseConfig() {

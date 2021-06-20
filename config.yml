@@ -9,13 +9,11 @@ game:
 vulnboxes:
   - user: cbs
     host: 127.0.0.1
-    services: [ base_http ]
     goxy_port: 8000
-
-services:
-  - name: base_http
-    port: 5000
-    proto: http
+    services:
+      - name: base_http
+        port: 5000
+        proto: http
 
 farm:
   addr: 127.0.0.1:5137
@@ -23,5 +21,6 @@ farm:
 mongol:
   addr: 127.0.0.1:5138
 
-start_sploit: resources/start_sploit.py
-key_file: resources/ssh_key
+neo:
+  addr: 127.0.0.1:5005
+  version: '2.0-beta.7'

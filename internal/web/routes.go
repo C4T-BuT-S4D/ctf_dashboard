@@ -40,6 +40,21 @@ func (s Server) serveStartSploit() gin.HandlerFunc {
 	}
 }
 
+func (s Server) serveNeoRunner() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, err := ioutil.ReadFile(s.cfg.Neo.RunnerPath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		content := string(data)
+		content = strings.ReplaceAll(content, "$$VERSION$$", s.cfg.Neo.Version)
+		content = strings.ReplaceAll(content, "$$HOST$$", s.cfg.Neo.Addr)
+		content = strings.ReplaceAll(content, "$$AUTH_KEY$$", s.cfg.Auth.Password)
+		c.Data(http.StatusOK, "application/octet-stream", []byte(content))
+	}
+}
+
 func (s Server) addSSHKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req UploadIdRSARequest

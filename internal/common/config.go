@@ -18,6 +18,12 @@ type Farm struct {
 	Addr string `json:"addr" mapstructure:"addr"`
 }
 
+type Neo struct {
+	Addr       string `json:"addr" mapstructure:"addr"`
+	Version    string `json:"version" mapstructure:"version"`
+	RunnerPath string `json:"runner_path" mapstructure:"runner_path"`
+}
+
 type Service struct {
 	Name       string `json:"name" mapstructure:"name"`
 	Proto      string `json:"proto" mapstructure:"proto"`
@@ -26,10 +32,10 @@ type Service struct {
 }
 
 type Vulnbox struct {
-	User     string   `json:"user" mapstructure:"user"`
-	Host     string   `json:"host" mapstructure:"host"`
-	Services []string `json:"services" mapstructure:"services"`
-	GoxyPort int      `json:"goxy_port" mapstructure:"goxy_port"`
+	User     string    `json:"user" mapstructure:"user"`
+	Host     string    `json:"host" mapstructure:"host"`
+	Services []Service `json:"services" mapstructure:"services"`
+	GoxyPort int       `json:"goxy_port" mapstructure:"goxy_port"`
 }
 
 type Game struct {
@@ -37,13 +43,18 @@ type Game struct {
 	End   string `json:"end" mapstructure:"end"`
 }
 
+type NeoRunner struct {
+	Path    string `json:"path" mapstructure:"path"`
+	Version string `json:"version" mapstructure:"version"`
+}
+
 type Config struct {
 	Auth        AuthData  `json:"auth" mapstructure:"auth"`
 	Game        Game      `json:"game" mapstructure:"game"`
 	Mongol      Mongol    `json:"mongol" mapstructure:"mongol"`
-	Services    []Service `json:"services" mapstructure:"services"`
 	Vulnboxes   []Vulnbox `json:"vulnboxes" mapstructure:"vulnboxes"`
 	Farm        Farm      `json:"farm" mapstructure:"farm"`
+	Neo         Neo       `json:"neo" mapstructure:"neo"`
 	StartSploit string    `json:"start_sploit" mapstructure:"start_sploit"`
 	KeyFile     string    `json:"key_file" mapstructure:"key_file"`
 }

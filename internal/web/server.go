@@ -35,6 +35,7 @@ func (s *Server) registerRoutes() {
 		api.GET("/status/", s.statusHandler())
 		api.GET("/config/", s.configHandler())
 		api.GET("/start_sploit.py", s.serveStartSploit())
+		api.GET("/run_neo.sh", s.serveNeoRunner())
 		api.GET("/key_file", s.serveKeyFile())
 		api.POST("/add_ssh_key/", s.addSSHKey())
 	}
