@@ -21,8 +21,12 @@
         </div>
         <el-row :gutter="10">
           <el-col :span="12">
-            <div class="text item"><a :href="boardLink">Scoreboard</a></div>
-            <div class="text item"><a :href="mongolLink">MonGol</a></div>
+            <div class="text item">
+              <a :href="boardLink" target="_blank">Scoreboard</a>
+            </div>
+            <div class="text item">
+              <a :href="mongolLink" target="_blank">MonGol</a>
+            </div>
             <div class="text item">
               Username:
               <span class="copiable" @click="copyText(`${username}`)">{{
@@ -43,7 +47,11 @@
       <el-card>
         <div slot="header" class="clearfix">
           <span class="header-text">Farm</span>
-          <a :href="farmLink" style="float: right; padding: 3px 0" type="text"
+          <a
+            :href="farmLink"
+            target="_blank"
+            style="float: right; padding: 3px 0"
+            type="text"
             >Open</a
           >
         </div>
@@ -70,7 +78,7 @@
               >{{ vulnbox.user }}@{{ vulnbox.host }}</span
             >
             &rarr;
-            <a :href="getGoxyLink(vulnbox)">Goxy</a>
+            <a :href="getGoxyLink(vulnbox)" target="_blank">Goxy</a>
           </div>
           <ul>
             <li v-for="(service, j) of vulnbox.services" :key="j">
@@ -78,6 +86,7 @@
               <a
                 v-if="service.proto === 'http'"
                 :href="getServiceLink(vulnbox, service)"
+                target="_blank"
                 >{{ getServiceLink(vulnbox, service) }}</a
               >
               <span
@@ -258,7 +267,7 @@ export default {
       if (!this.config) {
         return "";
       }
-      return `http://${this.username}:${this.password}@${this.config.farm.addr}`;
+      return `http://${this.username}:${this.password}@${this.config.farm.addr}/?password=${this.password}`;
     },
     boardLink: function() {
       if (!this.config) {
