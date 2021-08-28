@@ -6,7 +6,7 @@ COMMAND="$*"
 # shellcheck disable=SC2016
 VERSION='v$$VERSION$$'
 
-cat >"${DIR}/config.yml" <<-EOT
+cat >"${DIR}/client_config.yml" <<-EOT
 host: "$$HOST$$"
 exploit_dir: "data"
 grpc_auth_key: "$$AUTH_KEY$$"
