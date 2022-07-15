@@ -1,61 +1,76 @@
 package web
 
 import (
-	"ctf_dashboard/internal/deploy"
-	"github.com/gin-gonic/gin"
-	"io/ioutil"
+	"bytes"
+	"fmt"
 	"net/http"
-	"strings"
+	"os"
+	"path/filepath"
+
+	"ctf_dashboard/internal/deploy"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (s Server) statusHandler() gin.HandlerFunc {
+func (s *Server) statusHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	}
 }
 
-func (s Server) configHandler() gin.HandlerFunc {
+func (s *Server) configHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, s.cfg)
 	}
 }
 
-func (s Server) serveKeyFile() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.FileAttachment(s.cfg.KeyFile, "ssh_key")
+func (s *Server) serveFileList() gin.HandlerFunc {
+	type response struct {
+		Files []string `json:"files"`
 	}
-}
 
-func (s Server) serveStartSploit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		data, err := ioutil.ReadFile(s.cfg.StartSploit)
+		entries, err := os.ReadDir(s.cfg.ResourcesPath)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		content := string(data)
-		content = strings.ReplaceAll(content, "$$SERVER_URL$$", s.cfg.Farm.GetUrl())
-		content = strings.ReplaceAll(content, "$$PASSWORD$$", s.cfg.Auth.Password)
-		c.Data(http.StatusOK, "application/octet-stream", []byte(content))
+		resp := &response{Files: make([]string, 0, len(entries))}
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				resp.Files = append(resp.Files, entry.Name())
+			}
+		}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
-func (s Server) serveNeoRunner() gin.HandlerFunc {
+func (s *Server) serveFile() gin.HandlerFunc {
+	type request struct {
+		Name string `form:"name" binding:"required"`
+	}
+
 	return func(c *gin.Context) {
-		data, err := ioutil.ReadFile(s.cfg.Neo.RunnerPath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		var req request
+		if err := c.ShouldBindQuery(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		content := string(data)
-		content = strings.ReplaceAll(content, "$$VERSION$$", s.cfg.Neo.Version)
-		content = strings.ReplaceAll(content, "$$HOST$$", s.cfg.Neo.Addr)
-		content = strings.ReplaceAll(content, "$$AUTH_KEY$$", s.cfg.Auth.Password)
-		c.Data(http.StatusOK, "application/octet-stream", []byte(content))
+		path := filepath.Join(s.cfg.ResourcesPath, req.Name)
+		data, err := os.ReadFile(path)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.Data(
+			http.StatusOK,
+			"application/octet-stream",
+			s.replaceVariables(data),
+		)
 	}
 }
 
-func (s Server) addSSHKey() gin.HandlerFunc {
+func (s *Server) addSSHKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req UploadIdRSARequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -70,4 +85,16 @@ func (s Server) addSSHKey() gin.HandlerFunc {
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	}
+}
+
+func (s *Server) replaceVariables(data []byte) []byte {
+	replacements := map[string]string{
+		"VERSION":  s.cfg.Neo.Version,
+		"HOST":     s.cfg.Neo.Addr,
+		"AUTH_KEY": s.cfg.Auth.Password,
+	}
+	for k, v := range replacements {
+		data = bytes.ReplaceAll(data, []byte(fmt.Sprintf("$$%s$$", k)), []byte(v))
+	}
+	return data
 }

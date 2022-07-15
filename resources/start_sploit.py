@@ -7,6 +7,7 @@ import logging
 import os
 import random
 import re
+import requests
 import stat
 import subprocess
 import sys
@@ -16,8 +17,6 @@ from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 from math import ceil
 from urllib.parse import urljoin
-
-import requests
 
 if sys.version_info < (3, 4):
     logging.critical('Support of Python < 3.4 is not implemented yet')
@@ -242,7 +241,10 @@ SERVER_TIMEOUT = 5
 
 
 def get_auth_headers(args):
-    return {'Authorization': args.server_pass}
+    return {
+        'Authorization': args.server_pass,
+        'X-Token': args.server_pass,
+    }
 
 
 def get_config(args):

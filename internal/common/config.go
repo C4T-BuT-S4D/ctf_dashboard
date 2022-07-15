@@ -19,9 +19,8 @@ type Farm struct {
 }
 
 type Neo struct {
-	Addr       string `json:"addr" mapstructure:"addr"`
-	Version    string `json:"version" mapstructure:"version"`
-	RunnerPath string `json:"runner_path" mapstructure:"runner_path"`
+	Addr    string `json:"addr" mapstructure:"addr"`
+	Version string `json:"version" mapstructure:"version"`
 }
 
 type Service struct {
@@ -49,14 +48,14 @@ type NeoRunner struct {
 }
 
 type Config struct {
-	Auth        AuthData  `json:"auth" mapstructure:"auth"`
-	Game        Game      `json:"game" mapstructure:"game"`
-	Mongol      Mongol    `json:"mongol" mapstructure:"mongol"`
-	Vulnboxes   []Vulnbox `json:"vulnboxes" mapstructure:"vulnboxes"`
-	Farm        Farm      `json:"farm" mapstructure:"farm"`
-	Neo         Neo       `json:"neo" mapstructure:"neo"`
-	StartSploit string    `json:"start_sploit" mapstructure:"start_sploit"`
-	KeyFile     string    `json:"key_file" mapstructure:"key_file"`
+	Auth          AuthData  `json:"auth" mapstructure:"auth"`
+	Game          Game      `json:"game" mapstructure:"game"`
+	Mongol        Mongol    `json:"mongol" mapstructure:"mongol"`
+	Vulnboxes     []Vulnbox `json:"vulnboxes" mapstructure:"vulnboxes"`
+	Farm          Farm      `json:"farm" mapstructure:"farm"`
+	Neo           Neo       `json:"neo" mapstructure:"neo"`
+	ResourcesPath string    `json:"resources_path" mapstructure:"resources_path"`
+	KeyFile       string    `json:"key_file" mapstructure:"key_file"`
 }
 
 func (a AuthData) GetHeader() (string, string) {

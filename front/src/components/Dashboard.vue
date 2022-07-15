@@ -28,14 +28,17 @@
               <a :href="mongolLink" target="_blank">MonGol</a>
             </div>
             <div class="text item">
+              <a :href="farmLink" target="_blank">Farm</a>
+            </div>
+            <div class="text item">
               Username:
-              <span class="copiable" @click="copyText(`${username}`)">{{
+              <span class="copiable" @click="copyText(username)">{{
                 username
               }}</span>
             </div>
             <div class="text item">
               Password:
-              <span class="copiable" @click="copyText(`${password}`)">{{
+              <span class="copiable" @click="copyText(password)">{{
                 password
               }}</span>
             </div>
@@ -46,22 +49,19 @@
     <el-col :span="8">
       <el-card>
         <div slot="header" class="clearfix">
-          <span class="header-text">Farm</span>
-          <a
-            :href="farmLink"
-            target="_blank"
-            style="float: right; padding: 3px 0"
-            type="text"
-            >Open</a
-          >
+          <span class="header-text">Files</span>
         </div>
-        <el-row justify="space-around" type="flex">
-          <el-button :span="6" @click="downloadNeoRunner"
-            >🖨️ Neo runner
-          </el-button>
-          <el-button :span="6" @click="downloadStartSploit"
-            >🖨️ Start sploit
-          </el-button>
+        <el-row type="flex" justify="center">
+          <el-col>
+            <el-button
+              v-for="file of files"
+              :key="file"
+              :span="6"
+              class="item"
+              @click="downloadFile(file)"
+              >{{ file }}
+            </el-button>
+          </el-col>
         </el-row>
       </el-card>
     </el-col>
@@ -110,9 +110,6 @@
           </el-row>
           <el-row justify="center" type="flex">
             <el-button :span="8" @click="uploadKeyFile">Upload key</el-button>
-            <el-button :span="8" @click="downloadKeyFile"
-              >Download key file
-            </el-button>
           </el-row>
         </div>
       </el-card>
@@ -130,14 +127,16 @@ export default {
       username: "",
       password: "",
       vulnboxes: [],
+      files: [],
       game: {},
       endTime: {},
-      keyContent: ""
+      keyContent: "",
     };
   },
 
   mounted: async function() {
     await this.loadConfig();
+    await this.loadFiles();
   },
 
   methods: {
@@ -157,7 +156,7 @@ export default {
           title: "Config load",
           message: "Success",
           type: "success",
-          duration: 1000
+          duration: 1000,
         });
       } catch (e) {
         this.config = {};
@@ -165,13 +164,32 @@ export default {
           title: "Config load",
           message: `Error: ${e}`,
           type: "error",
-          duration: 10000
+          duration: 10000,
         });
       }
     },
-    downloadFile: async function(path, name) {
+
+    loadFiles: async function() {
       try {
-        const response = await this.$http.get(path);
+        const {
+          data: { files },
+        } = await this.$http.get("/files/");
+        this.files = files;
+      } catch (e) {
+        this.$notify({
+          title: "Loading files",
+          message: `Error loading file list: ${e}`,
+          type: "error",
+          duration: 3000,
+        });
+      }
+    },
+
+    downloadFile: async function(name) {
+      try {
+        const response = await this.$http.get("/file/", {
+          params: { name: name },
+        });
         let fileURL = window.URL.createObjectURL(new Blob([response.data]));
         let fileLink = document.createElement("a");
 
@@ -185,38 +203,32 @@ export default {
           title: "Download file",
           message: `Error downloading ${name}: ${e}`,
           type: "error",
-          duration: 3000
+          duration: 3000,
         });
       }
     },
-    downloadKeyFile: async function() {
-      await this.downloadFile("/key_file", "ssh_key");
-    },
-    downloadStartSploit: async function() {
-      await this.downloadFile("/start_sploit.py", "start_sploit.py");
-    },
-    downloadNeoRunner: async function() {
-      await this.downloadFile("/run_neo.sh", "run_neo.sh");
-    },
+
     uploadKeyFile: async function() {
       try {
         await this.$http.post("/add_ssh_key/", { key: this.keyContent });
         this.$notify({
           title: "Key upload",
           message: "Success",
-          type: "success"
+          type: "success",
         });
       } catch (e) {
         this.$notify({
           title: "Key upload",
           message: `Error: ${e}`,
-          type: "error"
+          type: "error",
         });
       }
     },
+
     getGoxyLink: function(vulnbox) {
       return `http://${this.username}:${this.password}@${vulnbox.host}:${vulnbox.goxy_port}`;
     },
+
     getServiceLink: function(vulnbox, service) {
       if (service.proto === "http") {
         return `http://${vulnbox.host}:${service.port}`;
@@ -224,6 +236,7 @@ export default {
         return `${vulnbox.host} ${service.port}`;
       }
     },
+
     copyText: function(text) {
       var textArea = document.createElement("textarea");
       textArea.value = text;
@@ -243,18 +256,18 @@ export default {
           title: "Text copied to clipboard",
           message: text,
           type: "success",
-          duration: 1500
+          duration: 1500,
         });
       } catch (err) {
         this.$notify({
           title: "Text copy failed",
           message: `Error: ${err}`,
-          type: "error"
+          type: "error",
         });
       }
 
       document.body.removeChild(textArea);
-    }
+    },
   },
   computed: {
     mongolLink: function() {
@@ -274,8 +287,8 @@ export default {
         return "";
       }
       return this.game.board;
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -285,7 +298,7 @@ export default {
 }
 
 .item {
-  margin-bottom: 18px;
+  margin-bottom: 18px !important;
 }
 
 .header-text {

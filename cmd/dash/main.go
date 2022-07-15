@@ -2,17 +2,19 @@ package main
 
 import (
 	"context"
-	"ctf_dashboard/internal/common"
-	"ctf_dashboard/internal/web"
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"ctf_dashboard/internal/common"
+	"ctf_dashboard/internal/web"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 func main() {
@@ -81,8 +83,7 @@ func setWebServerMode() {
 func setConfigDefaults() {
 	viper.SetDefault("web.static_dir", "front/dist")
 	viper.SetDefault("web.listen", "0.0.0.0:8000")
-	viper.SetDefault("start_sploit", "resources/start_sploit.py")
-	viper.SetDefault("neo.runner_path", "resources/run_neo.sh")
+	viper.SetDefault("resources_path", "resources")
 	viper.SetDefault("neo.version", "latest")
 	viper.SetDefault("key_file", "resources/ssh_key")
 }

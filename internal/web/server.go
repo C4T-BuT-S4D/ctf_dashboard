@@ -1,15 +1,17 @@
 package web
 
 import (
+	"net/http"
+	"os"
+	"path"
+
 	"ctf_dashboard/internal/common"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"net/http"
-	"os"
-	"path"
 )
 
 func NewServer(cfg common.Config) *Server {
@@ -34,9 +36,8 @@ func (s *Server) registerRoutes() {
 	{
 		api.GET("/status/", s.statusHandler())
 		api.GET("/config/", s.configHandler())
-		api.GET("/start_sploit.py", s.serveStartSploit())
-		api.GET("/run_neo.sh", s.serveNeoRunner())
-		api.GET("/key_file", s.serveKeyFile())
+		api.GET("/files/", s.serveFileList())
+		api.GET("/file/", s.serveFile())
 		api.POST("/add_ssh_key/", s.addSSHKey())
 	}
 

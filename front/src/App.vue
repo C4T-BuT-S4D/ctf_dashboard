@@ -7,8 +7,6 @@
     <header class="grid-content header-color">
       <el-row>
         <a class="brand" href="#">CBS Dash</a>
-        <!-- <router-link to="/">Home</router-link> |
-        <router-link to="/about">About</router-link> -->
       </el-row>
     </header>
     <el-container>
@@ -51,7 +49,7 @@ header {
 }
 
 .header-color {
-  background: #58b7ff;
+  background: #333333;
 }
 
 #content {
