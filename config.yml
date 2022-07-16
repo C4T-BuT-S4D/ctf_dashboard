@@ -18,6 +18,9 @@ vulnboxes:
 farm:
   addr: 127.0.0.1:5137
 
+proxy:
+  addr: 127.0.0.1:8888
+
 mongol:
   addr: 127.0.0.1:5138
 

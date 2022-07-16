@@ -4,12 +4,12 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 COMMAND="$*"
 
 # shellcheck disable=SC2016
-VERSION='v$$VERSION$$'
+VERSION='v$$NEO_VERSION$$'
 
 cat >"${DIR}/client_config.yml" <<-EOT
-host: "$$HOST$$"
+host: "$$NEO_ADDR$$"
 exploit_dir: "data"
-grpc_auth_key: "$$AUTH_KEY$$"
+grpc_auth_key: "$$PASSWORD$$"
 EOT
 
 IMAGE="ghcr.io/pomo-mondreganto/neo_env:${VERSION}"

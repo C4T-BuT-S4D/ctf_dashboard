@@ -23,6 +23,10 @@ type Neo struct {
 	Version string `json:"version" mapstructure:"version"`
 }
 
+type Proxy struct {
+	Addr string `json:"addr" mapstructure:"addr"`
+}
+
 type Service struct {
 	Name       string `json:"name" mapstructure:"name"`
 	Proto      string `json:"proto" mapstructure:"proto"`
@@ -54,6 +58,7 @@ type Config struct {
 	Vulnboxes     []Vulnbox `json:"vulnboxes" mapstructure:"vulnboxes"`
 	Farm          Farm      `json:"farm" mapstructure:"farm"`
 	Neo           Neo       `json:"neo" mapstructure:"neo"`
+	Proxy         Proxy     `json:"proxy" mapstructure:"proxy"`
 	ResourcesPath string    `json:"resources_path" mapstructure:"resources_path"`
 	KeyFile       string    `json:"key_file" mapstructure:"key_file"`
 }

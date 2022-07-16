@@ -89,9 +89,11 @@ func (s *Server) addSSHKey() gin.HandlerFunc {
 
 func (s *Server) replaceVariables(data []byte) []byte {
 	replacements := map[string]string{
-		"VERSION":  s.cfg.Neo.Version,
-		"HOST":     s.cfg.Neo.Addr,
-		"AUTH_KEY": s.cfg.Auth.Password,
+		"NEO_VERSION": s.cfg.Neo.Version,
+		"NEO_ADDR":    s.cfg.Neo.Addr,
+		"FARM_ADDR":   s.cfg.Farm.Addr,
+		"PROXY_ADDR":  s.cfg.Proxy.Addr,
+		"PASSWORD":    s.cfg.Auth.Password,
 	}
 	for k, v := range replacements {
 		data = bytes.ReplaceAll(data, []byte(fmt.Sprintf("$$%s$$", k)), []byte(v))
