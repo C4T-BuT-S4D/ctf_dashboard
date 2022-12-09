@@ -12,7 +12,7 @@ exploit_dir: "data"
 grpc_auth_key: "$$PASSWORD$$"
 EOT
 
-IMAGE="ghcr.io/pomo-mondreganto/neo_env:${VERSION}"
+IMAGE="ghcr.io/c4t-but-s4d/neo_env:${VERSION}"
 CONTAINER_NAME="neo-${VERSION}"
 
 mkdir -p "${DIR}/exploits"
